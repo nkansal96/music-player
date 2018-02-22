@@ -1,0 +1,44 @@
+Songs with a preview_url in the Spotify API.
+
+Song, Artist
+
+Viva La Vida, Coldplay
+The Scientist, Coldplay
+Some Nights, fun.
+World Gone Mad, Bastille
+Me, Myself & I, G-Eazy
+Him & I (with Halsey), G-Eazy
+Him & I, G-Eazy
+I Mean It, G-Eazy
+Uptown Funk, Bruno Mars
+That's What I Like, Bruno Mars
+When I Was Your Man, Bruno Mars
+Just The Way You Are, Bruno Mars
+Versace On The Floor, Bruno Mars
+Closer, The Chainsmokers
+Don't Let Me Down, The Chainsmokers
+Something Just Like This, The Chainsmokers
+Paris, The Chainsmokers
+Idfc, blackbear
+Stargazing, Kygo
+First Time, Kygo
+This Time, Kygo
+Stranger Things, Kygo
+Summer, Marshmello
+Silence, Marshmello
+Danger (with Migos & Marshmello), Migos
+FRIENDS, Marshmello
+Spotlight, Marshmello
+Alone, Marshmello
+Moving On, Marshmello
+Mask Off - Marshmello Remix, Future
+No Role Modelz, J. Cole
+Young Dumb & Broke, Khalid
+See You Again (feat. Charlie Puth), Wiz Khalifa
+All The Way Up, Fat Joe
+Rude - Zedd Remix, MAGIC!
+Stronger (What Doesn't Kill You), Kelly Clarkson
+Harder Better Faster Stronger, Daft Punk
+Look Alive (feat. Drake), BlocBoy JB
+Creep, Radiohead
+Karma Police, Radiohead

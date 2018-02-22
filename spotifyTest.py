@@ -32,7 +32,7 @@ token = credentials.get_access_token()
 
 if token:
 	sp = spotipy.Spotify(auth=token)
-	result = sp.search('artist:Zedd track:Clarity', limit=2)
+	result = sp.search('Coldplay', limit=2, type='track', market='US')
 	pprint.pprint(result)
 else:
 	print("Could not get token")
