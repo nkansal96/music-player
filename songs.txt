@@ -2,6 +2,7 @@ Songs with a preview_url in the Spotify API.
 
 Song, Artist
 
+Hello, Adele
 Viva La Vida, Coldplay
 The Scientist, Coldplay
 Some Nights, fun.
