@@ -61,6 +61,7 @@ class SpotifyPlayer:
 			mixer.music.load(fileName)
 			mixer.music.play(2)	# play() default arg is 1
 			# For some reason, play() doens't work but does if it's argument is anything but 1
+			# Currently plays for two iterations
 
 		# Removes the MP3 file once song is done playing
 		def checkPlayStatus(fileName):
