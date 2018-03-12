@@ -6,8 +6,7 @@ import json
 import urllib.request
 import pygame
 import pathlib
-# import mplayer
-# import vlc
+import threading
 
 from pygame import mixer
 from pathlib import Path
@@ -16,83 +15,73 @@ import spotipy
 import spotipy.util as util
 import spotipy.oauth2 as oauth2
 
-import settings
+class SpotifyPlayer:
+	def __init__(self, spotify_client_id, spotify_client_secret):
 
-# if len(sys.argv) > 1:
-#   username = sys.argv[1]
-# else:
-#   print("Usage: %s username" % (sys.argv[0],))
-#   sys.exit()
+		self.currSongID = 1
+		self.mp3Files = []
+		mixer.init()
 
-# Old Credentials
-# scope = ''
-# token = util.prompt_for_user_token(
-# 	settings.NATHAN_USERNAME,
-# 	scope,
-# 	client_id=settings.SPOTIPY_CLIENT_ID,
-# 	client_secret=settings.SPOTIPY_CLIENT_SECRET,
-# 	redirect_uri=settings.SPOTIPY_REDIRECT_URI
-# )
+		self.tempDir = "mp3FilesTemp"
+		if not os.path.exists(self.tempDir):
+			os.makedirs(self.tempDir)
 
-def sig_handler(signal, frame):
-	if (Path("./spotifyTemp.mp3").is_file()):
-		os.remove("./spotifyTemp.mp3")
-	sys.exit()
+		credentials = oauth2.SpotifyClientCredentials(
+			client_id=spotify_client_id,
+			client_secret=spotify_client_secret)
 
-def main():
-	signal.signal(signal.SIGINT, sig_handler)
+		token = credentials.get_access_token()
+		if not token:
+			print("Could not get token")
+			sys.exit()
 
-	songRequest = input("Enter a song name: ")
-	artistRequest = input("Enter the artist: ")
-	searchQuery = songRequest + " " + artistRequest
-	print("Attempting to play " + songRequest + " by " + artistRequest)
+		self.sp = spotipy.Spotify(auth=token)
 
-	credentials = oauth2.SpotifyClientCredentials(
-		client_id=settings.SPOTIPY_CLIENT_ID,
-		client_secret=settings.SPOTIPY_CLIENT_SECRET)
+	def __del__(self):
+		for file in self.mp3Files:
+			if (Path(file).is_file()):
+				os.remove(file)
+		os.rmdir(self.tempDir)
 
-	token = credentials.get_access_token()
+	def play_song(self, name, artist):
+		searchQuery = name + " " + artist
+		result = self.sp.search(searchQuery, limit=1, type="track", market="US")
+		preview_url = result["tracks"]["items"][0]["preview_url"]
+		if (preview_url == 'None'):
+			print("Could not play song")
+			return False
 
-	if not token:
-		print("Could not get token")
-		sys.exit()
+		# Downloads the MP3 file locally
+		currFileName = "./" + self.tempDir + "/spotifyTemp" + str(self.currSongID) + ".mp3"
+		urllib.request.urlretrieve(preview_url, currFileName)
+		self.currSongID += 1
+		self.mp3Files.append(currFileName)
 
-	sp = spotipy.Spotify(auth=token)
-	# result = sp.search("Uptown Funk", limit=1, type="track", market="US")
-	# pprint.pprint(result)
-	result = sp.search(searchQuery, limit=1, type="track", market="US")
-	preview_url = result["tracks"]["items"][0]["preview_url"]
-	if (preview_url == 'None'):
-		print("Could not play song")
-		sys.exit()
+		def playMP3(fileName):
+			mixer.music.load(fileName)
+			mixer.music.play(2)	# play() default arg is 1
+			# For some reason, play() doens't work but does if it's argument is anything but 1
+			# Currently plays for two iterations
 
-	print(preview_url)
+		# Removes the MP3 file once song is done playing
+		def checkPlayStatus(fileName):
+			while mixer.music.get_busy():
+				pass
+			if (Path(fileName).is_file()):
+				os.remove(fileName)
 
-	# Download MP3
-	urllib.request.urlretrieve(preview_url, "./spotifyTemp.mp3")
+		threading.Thread(target=playMP3, args=(currFileName,)).start()
+		threading.Thread(target=checkPlayStatus, args=(currFileName,)).start()
 
-	# Pygame code
-	mixer.init()
-	mixer.music.load("./spotifyTemp.mp3")
-	mixer.music.play(2)	# play() default arg is 1
-	# For some reason, play() doens't work but does if it's argument is anything but 1
+		return True
 
-	while pygame.mixer.music.get_busy(): 
-		pygame.time.Clock().tick(10)
+	def pause(self):
+		mixer.music.pause()
 
-	if (Path("./spotifyTemp.mp3").is_file()):
-		os.remove("./spotifyTemp.mp3")
+	def resume(self):
+		mixer.music.unpause()
 
-	# mplayer code
-	# p = mplayer.Player()
-	# p.loadfile('/Users/thenathanyang/Music/Set\ final\ cut.mp3')
-
-	# VLC code
-	# p = vlc.MediaPlayer(preview_url)
-	# p = vlc.MediaPlayer('/Users/thenathanyang/Music')
-	# p.play()
-	# p.get_instance()
-
-
-if __name__ == "__main__":
-	main()
+	def volume(self, value):
+		vol = max(0, min(100, value)) / 100
+		mixer.music.set_volume(vol)
+		return value
