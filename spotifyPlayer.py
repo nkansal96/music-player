@@ -20,7 +20,7 @@ class SpotifyPlayer:
 
 		self.currSongID = 1
 		self.mp3Files = []
-		self.mixer = mixer.init()
+		mixer.init()
 
 		self.tempDir = "mp3FilesTemp"
 		if not os.path.exists(self.tempDir):
@@ -65,7 +65,7 @@ class SpotifyPlayer:
 
 		# Removes the MP3 file once song is done playing
 		def checkPlayStatus(fileName):
-			while pygame.mixer.music.get_busy():
+			while mixer.music.get_busy():
 				pass
 			if (Path(fileName).is_file()):
 				os.remove(fileName)
@@ -74,3 +74,14 @@ class SpotifyPlayer:
 		threading.Thread(target=checkPlayStatus, args=(currFileName,)).start()
 
 		return True
+
+	def pause(self):
+		mixer.music.pause()
+
+	def resume(self):
+		mixer.music.unpause()
+
+	def volume(self, value):
+		vol = max(0, min(100, value)) / 100
+		mixer.music.set_volume(vol)
+		return value
