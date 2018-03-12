@@ -77,16 +77,11 @@ class SpotifyPlayer:
 
 	def pause(self):
 		mixer.music.pause()
-		return True
 
 	def resume(self):
 		mixer.music.unpause()
-		return True
 
 	def volume(self, value):
-		if (value < 0 or value > 100):
-			print("Volume level must be between 0 and 100")
-			return -1
-		newVolume = value / 100
-		mixer.music.set_volume(newVolume)
+		vol = max(0, min(100, value)) / 100
+		mixer.music.set_volume(vol)
 		return value
