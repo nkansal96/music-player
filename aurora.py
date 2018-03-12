@@ -2,6 +2,10 @@ import auroraapi as auroraapi
 from auroraapi.audio import AudioFile
 from auroraapi.speech import Speech, continuously_listen
 
+import spotifyPlayer as player
+
+import 
+
 aurora.config.add_id = ""
 aurora.config.app_token = ""
 trigger_word = ""
@@ -17,10 +21,16 @@ def listen():
 			print(i.intent)
 
 			if i.intent == "play_song":
-
-				pass
+				title = i.entities["song"]
+				if "artist" in i.entities:
+					artist = i.entities["artist"]
+				else:
+					artist = ""
+				player.play_song(title, artist)
 
 			if i.intent == "play_artist":
+				artist = i.entities["artist"]
+				player.play_song("", artist)
 				pass
 
 			if i.intent == "play_playlist":
@@ -30,17 +40,15 @@ def listen():
 				pass
 
 			if i.intent == "pause":
-				pass
+				player.pause()
 
 			if i.intent == "resume":
-				pass
+				player.resume()
 
 			if i.intent == "volume":
-				pass
+				volume = i.entities["volume"] #need to cast this as int
+				player.volume(volume)
 
-			if i.intent == "weather":
-				loc = i.entities["location"]
-				
 
 
 
