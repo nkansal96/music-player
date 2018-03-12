@@ -4,11 +4,12 @@ from auroraapi.speech import Speech, continuously_listen
 
 import spotifyPlayer as player
 
-import 
-
 aurora.config.add_id = ""
 aurora.config.app_token = ""
 trigger_word = ""
+
+valid_words = ["song", "artist", "volume"]
+valid_entities = lambda d: "object" in d and d["object"] in valid_words
 
 def listen():
 
@@ -20,7 +21,7 @@ def listen():
 			i = text.interpret()
 			print(i.intent)
 
-			if i.intent == "play_song":
+			if i.intent == "play_song" and valid_entities(i.entities):
 				title = i.entities["song"]
 				if "artist" in i.entities:
 					artist = i.entities["artist"]
@@ -28,24 +29,24 @@ def listen():
 					artist = ""
 				player.play_song(title, artist)
 
-			if i.intent == "play_artist":
+			if i.intent == "play_artist" and valid_entities(i.entities):
 				artist = i.entities["artist"]
 				player.play_song("", artist)
 				pass
 
-			if i.intent == "play_playlist":
+			if i.intent == "play_playlist" and valid_entities(i.entities):
 				pass
 
-			if i.intent == "play_next":
+			if i.intent == "play_next" and valid_entities(i.entities):
 				pass
 
-			if i.intent == "pause":
+			if i.intent == "pause" and valid_entities(i.entities):
 				player.pause()
 
-			if i.intent == "resume":
+			if i.intent == "resume" and valid_entities(i.entities):
 				player.resume()
 
-			if i.intent == "volume":
+			if i.intent == "volume" and valid_entities(i.entities):
 				volume = i.entities["volume"] #need to cast this as int
 				player.volume(volume)
 
