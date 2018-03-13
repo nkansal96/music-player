@@ -1,69 +1,80 @@
-import auroraapi as aurora
-import settings
+import argparse
+from collections import defaultdict
 
+import auroraapi as aurora
 from auroraapi.audio import AudioFile
-from auroraapi.speech import Speech, continuously_listen_and_transcribe
+from auroraapi.speech import *
 from auroraapi.interpret import Interpret
 from spotifyPlayer import SpotifyPlayer
 
+def play_song(player, entities):
+	player.play_song(entities["song"], entities["artist"])
 
+def play_artist(player, entities):
+	player.play_song("", entities["artist"])
 
-aurora.config.app_id = "ceb5d7c34056489150660ec5ebcc1c5f"
-aurora.config.app_token = "6NWvZigglXLlmA4aD1k0iJctnNYigyG"
-trigger_word = ""
+def play_playlist(player, entities):
+	# TODO: implement this
+	raise NotImplemented("play_playlist not implemented")
 
-# valid_words = ["song", "artist", "volume"]
-player = SpotifyPlayer(settings.SPOTIFY_CLIENT_ID, settings.SPOTIFY_CLIENT_SECRET)
-# valid_entities = lambda d: "object" in d and d["object"] in valid_words
+def pause(player, entities):
+	player.pause()
 
-def listen():
+def resume(player, entities):
+	player.resume()
 
-	for text in continuously_listen_and_transcribe(silence_len=0.5):
+def set_volume(player, entities):
+	player.volume(int(entities["volume"]))
 
-		if len(text.text) > 0:
-			i = text.interpret()
+CMD_MAP = {
+	"play_song":     { "fn": play_song,     "required": ["song"] },
+	"play_artist":   { "fn": play_artist,   "required": ["artist"] },
+	"play_playlist": { "fn": play_playlist, "required": ["playlist"] },
+	"turn_off":      { "fn": pause,         "required": [] },
+	"pause":         { "fn": pause,         "required": [] },
+	"resume":        { "fn": resume,        "required": [] },
+	"volume":        { "fn": set_volume,    "required": ["volume"] },	
+}
 
-			if i.intent == "play_song":
-				if "song" not in i.entities:
-					continue 
-				title = i.entities["song"]
-				if "artist" in i.entities:
-					artist = i.entities["artist"]
-				else:
-					artist = ""
-				player.play_song(title, artist)
-				pass
+def process_command(player, command):
+	print(command.intent, command.entities)
+	try:
+		cmd = CMD_MAP[command.intent]
+		if not all(x in command.entities for x in cmd["required"]):
+			raise ValueError()
+		cmd["fn"](player, defaultdict(str, command.entities))
+	except:
+		print("Could not parse: {{ intent: {}, entities: {} }}".format(command.intent, command.entities))
 
-			if i.intent == "play_artist":
-				artist = i.entities["artist"]
-				player.play_song("", artist)
-				pass
-
-			if i.intent == "play_playlist":
-				pass
-
-			if i.intent == "play_next":
-				pass
-
-			if i.intent == "pause":
-				player.pause()
-				pass
-
-			if i.intent == "resume":
-				player.resume()
-				pass
-
-			if i.intent == "volume":
-				print(i.entities)
-				if "volume" not in i.entities or not i.entities["volume"].isdigit():
-					continue 
-				volume = int(i.entities["volume"])
-				player.volume(volume)
-
+def start_player(opts):
+	player = SpotifyPlayer(opts.spotify_client_id, opts.spotify_client_secret)
+	print("Ready")
+	for text in continuously_listen_and_transcribe(length=1.5):
+		if opts.trigger_word.lower() in text.text.lower():
+			print("Awaiting command...")
+			s = listen(silence_len=opts.silence_len)
+			s.audio.play()
+			text = s.text()
+			if len(text.text) > 0: 
+				print(text.text)
+				process_command(player, text.interpret())
+		print("Ready")
 
 if __name__ == "__main__":
-	listen()
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--app_id", action="store", help="the Aurora app ID", type=str, required=True)
+	parser.add_argument("--app_token", action="store", help="the Aurora app token", type=str, required=True)
+	parser.add_argument("--device_id", action="store", help="the unique ID for this device", type=str, default=None)
+	parser.add_argument("--spotify_client_id", action="store", help="The Spotify client ID", type=str, required=True)
+	parser.add_argument("--spotify_client_secret", action="store", help="The Spotify client secret", type=str, required=True)
+	parser.add_argument("--trigger_word", action="store", help="the trigger word for commands", type=str, default="box")
+	parser.add_argument("--silence_len", action="store", help="the amount of silence (seconds)", type=float, default=0.3)
 
+	opts = parser.parse_args()
 
+	aurora.config.app_id    = opts.app_id
+	aurora.config.app_token = opts.app_token
+	aurora.config.device_id = opts.device_id
 
-
+	start_player(opts)
+	
