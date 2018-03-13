@@ -53,7 +53,7 @@ class SpotifyPlayer:
 
 	def __queue_tracks(self, tracks):
 		numQueued = 0
-		for track in reversed(tracks):
+		for track in tracks:
 			if track["preview_url"] != None:
 				self.queue.append(track["preview_url"])
 				numQueued += 1
