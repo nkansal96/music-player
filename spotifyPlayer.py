@@ -5,29 +5,35 @@ import time
 import pprint
 import json
 import urllib.request
-import pygame
 import pathlib
 import threading
+import pprint
 
 from pygame import mixer
 from pathlib import Path
-from collections import deque
+from exceptions import *
 
 import spotipy
 import spotipy.util as util
 import spotipy.oauth2 as oauth2
 
+
+"""
+[ Play control thread ]
+  ^
+  |
+[ Play status thread ]
+  ^
+  |
+[ SpotifyPlayer thread ]
+"""
+
 class SpotifyPlayer:
 	def __init__(self, spotify_client_id, spotify_client_secret):
-
-		# self.currSongID = 1
 		self.queue = []
-		self.mixer = mixer.init()
-
 		self.currFileName = ""
-		# self.tempDir = "mp3FilesTemp"
-		# if not os.path.exists(self.tempDir):
-		# 	os.makedirs(self.tempDir)
+		self.playMP3Thread = None
+		mixer.init()
 
 		credentials = oauth2.SpotifyClientCredentials(
 			client_id=spotify_client_id,
@@ -35,8 +41,7 @@ class SpotifyPlayer:
 
 		token = credentials.get_access_token()
 		if not token:
-			print("Could not get token")
-			sys.exit()
+			raise InvalidAuth()
 
 		self.sp = spotipy.Spotify(auth=token)
 
@@ -46,41 +51,72 @@ class SpotifyPlayer:
 			os.remove(self.currFileName)
 
 
+	def __queue_tracks(self, tracks):
+		numQueued = 0
+		for track in reversed(tracks):
+			if track["preview_url"] != None:
+				self.queue.append(track["preview_url"])
+				numQueued += 1
+		return numQueued
+
+
 	def __search_track(self, name="", artist="", inputLimit=1):
-		numQueued = 0
+		# [ { name, artist, url } ]
 		searchQuery = name + " " + artist
-		result = self.sp.search(searchQuery, limit=inputLimit, type="track", market="US")
-		for x in range(inputLimit):
-			if len(result["tracks"]["items"]) == 0:
-				print("Unable to find a match to the search query")
-				return 0
-			preview_url = result["tracks"]["items"][x]["preview_url"]
-			if preview_url != None:
-				self.queue.insert(0, preview_url)
-				numQueued += 1
-		print(numQueued)
-		return numQueued
+		result = []
+		offset = 0
+
+		while True:
+			response = self.sp.search(searchQuery, limit=inputLimit, offset=offset, type="track", market="US")
+			for track in response["tracks"]["items"]:
+				preview_url = track["preview_url"]
+				if preview_url != None:
+					trackInfo = {}
+					artists = []
+
+					name = track["name"]
+
+					for artist in track["artists"]:
+						artists.append(artist["name"])
+
+					trackInfo = { "name": name, "artists": artists, "preview_url": preview_url }
+					result.append(trackInfo)
+			offset += inputLimit
+			if response["tracks"]["next"] == None:
+				break
+		return result
 
 
-	def __search_playlist(self, name):
-		numQueued = 0
-		searchResult = self.sp.search(name, limit=1, type="playlist", market="US")
-		if len(searchResult["playlists"]["items"]) == 0:
-			print("Unable to find a match to the search query")
-			return 0
-		ownerId = searchResult["playlists"]["items"][0]["owner"]["id"]
-		playlistId = searchResult["playlists"]["items"][0]["id"]
+	def __search_playlist(self, name, inputLimit):
+		result = []
+		offset = 0
 
-		playlistResult = self.sp.user_playlist_tracks(ownerId, playlist_id=playlistId, fields="items(track(name,preview_url))", limit=20, market="US")
-		if len(playlistResult["items"]) == 0:
-			print("Unable to find a match to the search query")
-			return 0
-		for track in reversed(playlistResult["items"]):		# reversed to preserve order
-			preview_url = track["track"]["preview_url"]
-			if preview_url != None:
-				self.queue.insert(0, preview_url)
-				numQueued += 1
-		return numQueued
+		searchResponse = self.sp.search(name, limit=1, type="playlist", market="US")
+		if len(searchResponse["playlists"]["items"]) == 0:
+			return result
+		ownerId = searchResponse["playlists"]["items"][0]["owner"]["id"]
+		playlistId = searchResponse["playlists"]["items"][0]["id"]
+		playlistName = searchResponse["playlists"]["items"][0]["name"]
+
+		while True:
+			playlistResponse = self.sp.user_playlist_tracks(ownerId, playlist_id=playlistId, fields="items(track(name,artists(name),preview_url)),next", limit=inputLimit, offset=offset, market="US")
+			for track in playlistResponse["items"]:
+				preview_url = track["track"]["preview_url"]
+				if preview_url != None:
+					trackInfo = {}
+					artists = []
+
+					name = track["track"]["name"]
+
+					for artist in track["track"]["artists"]:
+						artists.append(artist["name"])
+
+					trackInfo = { "name": name, "artists": artists, "preview_url": preview_url, "playlist": playlistName }
+					result.append(trackInfo)
+			offset += inputLimit
+			if playlistResponse["next"] == None:
+				break
+		return result
 
 
 	def __download_mp3(self, url):
@@ -88,6 +124,7 @@ class SpotifyPlayer:
 		if Path(self.currFileName).is_file():
 			os.remove(self.currFileName)
 		self.currFileName, headers = urllib.request.urlretrieve(url)
+		print("Downloaded file " + self.currFileName)
 
 
 	"""
@@ -101,20 +138,24 @@ class SpotifyPlayer:
 
 		def playMP3():
 			mixer.music.load(self.currFileName)
-			mixer.music.play()	# play() default arg is 1
+			mixer.music.play(loops=2)	# play() default arg is 1
 
 		# Removes the MP3 file once song is done playing
 		def checkPlayStatus():
-			while pygame.mixer.music.get_busy():
+			while mixer.music.get_busy():
 				pass
 			if Path(self.currFileName).is_file():
 				os.remove(self.currFileName)
 			self.play_next()
 
-		threading.Thread(target=playMP3).start()
-		# Added sleep to account for music busy check in checkPlayStatus happening before music starts playing
-		time.sleep(10)
-		threading.Thread(target=checkPlayStatus).start()
+		def playThread():
+			self.playMP3Thread = threading.Thread(target=playMP3)
+			self.playMP3Thread.start()
+			# Added sleep to account for music busy check in checkPlayStatus happening before music starts playing
+			time.sleep(10)
+			threading.Thread(target=checkPlayStatus).start()
+
+		threading.Thread(target=playThread).start()
 		return True
 
 
@@ -123,34 +164,64 @@ class SpotifyPlayer:
 	If found, plays the song and removes it from the queue
 	"""
 	def play_song(self, name, artist):
-		if self.__search_track(name=name, artist=artist) != 1:
-			return False
-		self.__play_mp3(self.queue.pop(0))
-		return True
+		track = self.__search_track(name=name, artist=artist)		# [{name,artist,url}]
+		if len(track) == 0:
+			raise NotFound(NotFound.SONG, "{} by {}".format(name, artist))
+		self.queue.clear()
+		self.__queue_tracks(track)
+		if self.playMP3Thread != None:
+			self.stop()
+			# TODO: kill thread
+		self.play_next()
+		return track
 
 
 	"""
-	Pops the current song from the queue
-	Plays the next song (now top of the queue)
+	Pops song from top of queue and plays it
 	"""
 	def play_next(self):
 		if len(self.queue) == 0:
-			print("No songs in the queue")
-			return False
+			raise EmptyQueue()
 		self.__play_mp3(self.queue.pop(0))
-		return True
 
 
 	# Searches for up to 20 songs by the specified artist
 	def play_artist(self, artist):
-		self.__search_track(artist=artist, inputLimit=20)
+		tracks = self.__search_track(artist=artist, inputLimit=20)
+		if len(tracks) == 0:
+			raise NotFound(NotFound.ARTIST, "{}".format(artist))
+		self.queue.clear()
+		self.__queue_tracks(tracks)
+		if self.playMP3Thread != None:
+			self.stop()
+			# TODO: kill thread
 		self.play_next()
-		return True
+		return artist
 
 
 	# Searches for up to 20 songs by the specified artist
 	def play_playlist(self, playlist):
-		self.__search_playlist(playlist)
+		tracks = self.__search_playlist(playlist, 20)
+		if len(tracks) == 0:
+			raise NotFound(NotFound.PLAYLIST, "{}".format(playlist))
+		self.queue.clear()
+		self.__queue_tracks(tracks)
+		if self.playMP3Thread != None:
+			self.stop()
+			# TODO: kill thread
 		self.play_next()
-		return True
+		return playlist
 
+
+	def stop(self):
+		mixer.music.stop()
+
+	def pause(self):
+		mixer.music.pause()
+
+	def resume(self):
+		mixer.music.unpause()
+
+	def volume(self, value):
+		vol = max(0, min(100, value)) / 100
+		mixer.music.set_volume(vol)
