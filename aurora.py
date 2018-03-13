@@ -43,8 +43,13 @@ def process_command(player, command):
 		if not all(x in command.entities for x in cmd["required"]):
 			raise ValueError()
 		cmd["fn"](player, defaultdict(str, command.entities))
+		return True
+	except ValueError:
+		print("Required entities not provided: {{ intent: {}, entities: {} }}".format(command.intent, command.entities))
+		return False
 	except:
 		print("Could not parse: {{ intent: {}, entities: {} }}".format(command.intent, command.entities))
+		return False
 
 def start_player(opts):
 	player = SpotifyPlayer(opts.spotify_client_id, opts.spotify_client_secret)

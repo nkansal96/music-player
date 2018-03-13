@@ -8,3 +8,4 @@ pygame==1.9.3
 requests==2.18.4
 spotipy==2.4.4
 urllib3==1.22
+pytest==3.4.2
