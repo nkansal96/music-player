@@ -17,7 +17,6 @@ import spotipy
 import spotipy.util as util
 import spotipy.oauth2 as oauth2
 
-
 """
 [ Play control thread ]
   ^
@@ -123,7 +122,6 @@ class SpotifyPlayer:
 		if Path(self.currFileName).is_file():
 			os.remove(self.currFileName)
 		self.currFileName, headers = urllib.request.urlretrieve(url)
-		print("Downloaded file " + self.currFileName)
 
 
 	"""
