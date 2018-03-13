@@ -1,4 +1,4 @@
-class InvalidAuth(Exception)
+class InvalidAuth(Exception):
 	pass
 
 class EmptyQueue(Exception):
