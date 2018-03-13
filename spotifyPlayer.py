@@ -61,7 +61,6 @@ class SpotifyPlayer:
 
 
 	def __search_track(self, name="", artist="", inputLimit=1):
-		# [ { name, artist, url } ]
 		searchQuery = name + " " + artist
 		result = []
 		offset = 0
@@ -138,7 +137,7 @@ class SpotifyPlayer:
 
 		def playMP3():
 			mixer.music.load(self.currFileName)
-			mixer.music.play(loops=2)	# play() default arg is 1
+			mixer.music.play(loops=2)
 
 		# Removes the MP3 file once song is done playing
 		def checkPlayStatus():
@@ -159,29 +158,23 @@ class SpotifyPlayer:
 		return True
 
 
-	"""
-	Searches for the requested song
-	If found, plays the song and removes it from the queue
-	"""
 	def play_song(self, name, artist):
 		track = self.__search_track(name=name, artist=artist)		# [{name,artist,url}]
 		if len(track) == 0:
 			raise NotFound(NotFound.SONG, "{} by {}".format(name, artist))
 		self.queue.clear()
 		self.__queue_tracks(track)
-		if self.playMP3Thread != None:
-			self.stop()
-			# TODO: kill thread
 		self.play_next()
 		return track
 
 
-	"""
-	Pops song from top of queue and plays it
-	"""
+	# Pops song from top of queue and plays it
 	def play_next(self):
 		if len(self.queue) == 0:
 			raise EmptyQueue()
+		if self.playMP3Thread != None:
+			self.stop()
+			# TODO: kill thread
 		self.__play_mp3(self.queue.pop(0))
 
 
@@ -192,9 +185,6 @@ class SpotifyPlayer:
 			raise NotFound(NotFound.ARTIST, "{}".format(artist))
 		self.queue.clear()
 		self.__queue_tracks(tracks)
-		if self.playMP3Thread != None:
-			self.stop()
-			# TODO: kill thread
 		self.play_next()
 		return artist
 
@@ -206,9 +196,6 @@ class SpotifyPlayer:
 			raise NotFound(NotFound.PLAYLIST, "{}".format(playlist))
 		self.queue.clear()
 		self.__queue_tracks(tracks)
-		if self.playMP3Thread != None:
-			self.stop()
-			# TODO: kill thread
 		self.play_next()
 		return playlist
 
