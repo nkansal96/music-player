@@ -170,7 +170,7 @@ class SpotifyPlayer:
 		if len(self.queue) == 0:
 			raise EmptyQueue()
 		if self.playMP3Thread != None:
-			self.stop()
+			pass
 			# TODO: kill thread
 		self._play_mp3(self.queue.pop(0))
 
