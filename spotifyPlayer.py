@@ -59,13 +59,14 @@ class SpotifyPlayer:
 		return numQueued
 
 
-	def _search_track(self, name="", artist="", inputLimit=1):
+	def _search_track(self, name="", artist="", trackLimit=1):
 		searchQuery = name + " " + artist
 		result = []
 		offset = 0
 
 		while True:
-			response = self.sp.search(searchQuery, limit=inputLimit, offset=offset, type="track", market="US")
+			response = self.sp.search(searchQuery, limit=20, offset=offset, type="track", market="US")
+			print(response)
 			for track in response["tracks"]["items"]:
 				preview_url = track["preview_url"]
 				if preview_url != None:
@@ -79,10 +80,10 @@ class SpotifyPlayer:
 
 					trackInfo = { "name": name, "artists": artists, "preview_url": preview_url }
 					result.append(trackInfo)
-			offset += inputLimit
-			if response["tracks"]["next"] == None:
+			offset += 20
+			if len(result) >= trackLimit or response["tracks"]["next"] == None:
 				break
-		return result
+		return result[:trackLimit]
 
 
 	def _search_playlist(self, name, inputLimit):
