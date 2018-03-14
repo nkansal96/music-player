@@ -9,8 +9,8 @@ class MPlayer(object):
 		self.cmd.kill()
 
 	def play_url(self, url):
-		# TODO: replace https:// with http://
-		self.cmd.stdin.write(bytes("loadfile {}\n".format(url), "utf-8"))
+		formattedUrl = url.replace("https://", "http://", 1)
+		self.cmd.stdin.write(bytes("loadfile {}\n".format(formattedUrl), "utf-8"))
 		self.cmd.stdin.flush()
 	
 	def set_volume(self, vol):

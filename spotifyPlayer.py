@@ -8,8 +8,8 @@ import urllib.request
 import pathlib
 import threading
 import pprint
+import mplayer
 
-from pygame import mixer
 from pathlib import Path
 from exceptions import *
 
@@ -32,7 +32,8 @@ class SpotifyPlayer:
 		self.queue = []
 		self.currFileName = ""
 		self.playMP3Thread = None
-		mixer.init()
+
+		self.player = mplayer.MPlayer()
 
 		credentials = oauth2.SpotifyClientCredentials(
 			client_id=spotify_client_id,
@@ -131,25 +132,23 @@ class SpotifyPlayer:
 	If song is not able to be downloaded/played within 10 seconds, move on to next song 
 	"""
 	def _play_mp3(self, url):
-		self._download_mp3(url)
+		# self.__download_mp3(url)
 
 		def playMP3():
-			mixer.music.load(self.currFileName)
-			mixer.music.play(loops=2)
+			self.player.play_url(url)
 
-		# Removes the MP3 file once song is done playing
 		def checkPlayStatus():
-			while mixer.music.get_busy():
+			print("Playing status (outside while loop): " + str(self.player.playing()))
+			while self.player.playing():
+				print("Playing status: " + str(self.player.playing()))
 				pass
-			if Path(self.currFileName).is_file():
-				os.remove(self.currFileName)
 			self.play_next()
 
 		def playThread():
 			self.playMP3Thread = threading.Thread(target=playMP3)
 			self.playMP3Thread.start()
 			# Added sleep to account for music busy check in checkPlayStatus happening before music starts playing
-			time.sleep(10)
+			time.sleep(5)
 			threading.Thread(target=checkPlayStatus).start()
 
 		threading.Thread(target=playThread).start()
@@ -198,15 +197,13 @@ class SpotifyPlayer:
 		return playlist
 
 
-	def stop(self):
-		mixer.music.stop()
-
 	def pause(self):
-		mixer.music.pause()
+		self.player.pause()
 
 	def resume(self):
-		mixer.music.unpause()
+		self.player.resume()
 
+	# TODO: verify this is correct
 	def volume(self, value):
-		vol = max(0, min(100, value)) / 100
-		mixer.music.set_volume(vol)
+		# vol = max(0, min(100, value)) / 100
+		self.player.set_volume(value)
