@@ -138,10 +138,11 @@ class SpotifyPlayer:
 			self.player.play_url(url)
 
 		def checkPlayStatus():
-			print("Playing status (outside while loop): " + str(self.player.playing()))
+			# print("Playing status (outside while loop): " + str(self.player.playing()))
 			while self.player.playing():
-				print("Playing status: " + str(self.player.playing()))
-				pass
+				# print("Playing status: " + str(self.player.playing()))
+				time.sleep(0.5)
+				continue
 			self.play_next()
 
 		def playThread():

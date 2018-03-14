@@ -30,15 +30,14 @@ class MPlayer(object):
 			self.paused = False
 
 	def playing(self):
-		self.cmd.stdin.write(b"get_time_pos\n")
-		self.cmd.stdin.flush()
-
 		p = select.poll()
 		p.register(self.cmd.stdout, select.POLLIN)
 		now = time.time()
 		data = ""
 
 		while (time.time() - now < 1.0):
+			self.cmd.stdin.write(b"get_time_pos\n")
+			self.cmd.stdin.flush()
 			pr = p.poll(0)
 			if pr:
 				data += str(self.cmd.stdout.readline())
