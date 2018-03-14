@@ -8,10 +8,10 @@ from auroraapi.interpret import Interpret
 from spotifyPlayer import SpotifyPlayer
 
 def play_song(player, entities):
-	player.play_song(entities["song"], entities["artist"])
+	return player.play_song(entities["song"], entities["artist"])
 
 def play_artist(player, entities):
-	player.play_song("", entities["artist"])
+	return player.play_song("", entities["artist"])
 
 def play_playlist(player, entities):
 	# TODO: implement this
@@ -19,12 +19,14 @@ def play_playlist(player, entities):
 
 def pause(player, entities):
 	player.pause()
+	return True
 
 def resume(player, entities):
 	player.resume()
+	return True
 
 def set_volume(player, entities):
-	player.volume(int(entities["volume"]))
+	return player.volume(int(entities["volume"]))
 
 CMD_MAP = {
 	"play_song":     { "fn": play_song,     "required": ["song"] },
@@ -42,14 +44,13 @@ def process_command(player, command):
 		cmd = CMD_MAP[command.intent]
 		if not all(x in command.entities for x in cmd["required"]):
 			raise ValueError()
-		cmd["fn"](player, defaultdict(str, command.entities))
-		return True
+		return cmd["fn"](player, defaultdict(str, command.entities))
 	except ValueError:
 		print("Required entities not provided: {{ intent: {}, entities: {} }}".format(command.intent, command.entities))
-		return False
+		return None
 	except:
 		print("Could not parse: {{ intent: {}, entities: {} }}".format(command.intent, command.entities))
-		return False
+		return None
 
 def start_player(opts):
 	player = SpotifyPlayer(opts.spotify_client_id, opts.spotify_client_secret)
