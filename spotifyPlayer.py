@@ -31,7 +31,6 @@ class SpotifyPlayer:
 	def __init__(self, spotify_client_id, spotify_client_secret):
 		self.queue = []
 		self.currFileName = ""
-		self.playMP3Thread = None
 		mixer.init()
 
 		credentials = oauth2.SpotifyClientCredentials(
@@ -46,9 +45,9 @@ class SpotifyPlayer:
 
 
 	def __del__(self):
+		# delete all files in the tmp folder
 		if Path(self.currFileName).is_file():
 			os.remove(self.currFileName)
-
 
 	def _queue_tracks(self, tracks):
 		numQueued = 0
@@ -132,29 +131,22 @@ class SpotifyPlayer:
 	If song is not able to be downloaded/played within 10 seconds, move on to next song 
 	"""
 	def _play_mp3(self, url):
-		self._download_mp3(url)
-
-		def playMP3():
-			mixer.music.load(self.currFileName)
-			mixer.music.play(loops=2)
-
-		# Removes the MP3 file once song is done playing
+		self.player.play_url(url)
+		
 		def checkPlayStatus():
-			while mixer.music.get_busy():
-				pass
-			if Path(self.currFileName).is_file():
-				os.remove(self.currFileName)
+			playing = False
+			start = time.time()
+			while True:
+				now = time.time()
+				newStatus = self.player.playing()
+				if playing and not newStatus or (not playing and now - start > 5.0):
+					break
+				playing = newStatus
+				sleep(0.5)
+
 			self.play_next()
 
-		def playThread():
-			self.playMP3Thread = threading.Thread(target=playMP3)
-			self.playMP3Thread.start()
-			# Added sleep to account for music busy check in checkPlayStatus happening before music starts playing
-			time.sleep(10)
-			threading.Thread(target=checkPlayStatus).start()
-
-		threading.Thread(target=playThread).start()
-		return True
+		threading.Thread(target=checkPlayStatus).start()
 
 
 	def play_song(self, name, artist):
@@ -170,10 +162,7 @@ class SpotifyPlayer:
 	# Pops song from top of queue and plays it
 	def play_next(self):
 		if len(self.queue) == 0:
-			raise EmptyQueue()
-		if self.playMP3Thread != None:
-			self.stop()
-			# TODO: kill thread
+			return
 		self._play_mp3(self.queue.pop(0))
 
 
