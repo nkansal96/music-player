@@ -8,8 +8,8 @@ import urllib.request
 import pathlib
 import threading
 import pprint
+import mplayer
 
-from pygame import mixer
 from pathlib import Path
 from exceptions import *
 
@@ -30,8 +30,7 @@ import spotipy.oauth2 as oauth2
 class SpotifyPlayer:
 	def __init__(self, spotify_client_id, spotify_client_secret):
 		self.queue = []
-		self.currFileName = ""
-		mixer.init()
+		self.player = mplayer.MPlayer()
 
 		credentials = oauth2.SpotifyClientCredentials(
 			client_id=spotify_client_id,
@@ -45,9 +44,8 @@ class SpotifyPlayer:
 
 
 	def __del__(self):
-		# delete all files in the tmp folder
-		if Path(self.currFileName).is_file():
-			os.remove(self.currFileName)
+		pass
+
 
 	def _queue_tracks(self, tracks):
 		numQueued = 0
@@ -117,13 +115,6 @@ class SpotifyPlayer:
 		return result
 
 
-	def _download_mp3(self, url):
-		# Make sure existing tempfile removed first
-		if Path(self.currFileName).is_file():
-			os.remove(self.currFileName)
-		self.currFileName, headers = urllib.request.urlretrieve(url)
-
-
 	"""
 	Attempts to download song.
 	After 10 seconds after a song starts playing, begin to check if song still playing.
@@ -138,13 +129,12 @@ class SpotifyPlayer:
 			start = time.time()
 			while True:
 				now = time.time()
-				newStatus = self.player.playing()
+				newStatus = self.player.playing
 				if playing and not newStatus or (not playing and now - start > 5.0):
 					break
 				playing = newStatus
-				sleep(0.5)
-
-			self.play_next()
+				time.sleep(0.5)
+			# self.play_next()
 
 		threading.Thread(target=checkPlayStatus).start()
 
@@ -163,6 +153,7 @@ class SpotifyPlayer:
 	def play_next(self):
 		if len(self.queue) == 0:
 			return
+		self.player.stop()
 		self._play_mp3(self.queue.pop(0))
 
 
@@ -188,15 +179,13 @@ class SpotifyPlayer:
 		return playlist
 
 
-	def stop(self):
-		mixer.music.stop()
-
 	def pause(self):
-		mixer.music.pause()
+		self.player.pause()
 
 	def resume(self):
-		mixer.music.unpause()
+		self.player.resume()
 
+	# TODO: verify this is correct
 	def volume(self, value):
-		vol = max(0, min(100, value)) / 100
-		mixer.music.set_volume(vol)
+		# vol = max(0, min(100, value)) / 100
+		self.player.set_volume(value)

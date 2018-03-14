@@ -2,26 +2,25 @@ import subprocess, asyncio, time, select, threading
 
 class MPlayer(object):
 	def __init__(self):
-		self.paused = False
-		self.cmd = None #subprocess.Popen(["mplayer", "-slave", "-quiet", "-idle"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		self.cmd = None
 		self.playing = False
 		self.paused = False
 		self.volume = 25
 
 	def __del__(self):
-		self.cmd.kill()
+		self.stop()
 
 	def play_url(self, url):
 		if self.cmd != None:
-			self.cmd.terminate()
+			self.cmd.kill()
 			self.cmd = None
 
-		# TODO: replace https:// with http://
+		formattedUrl = url.replace("https://", "http://", 1)
 		def create_player():
 			self.playing = True
 			self.paused = False
 			self.volume = 25
-			self.cmd = subprocess.Popen(["mplayer", "-quiet", url], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+			self.cmd = subprocess.Popen(["mplayer", "-quiet", formattedUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 			self.cmd.wait()
 			self.playing = False
 
@@ -48,8 +47,9 @@ class MPlayer(object):
 			self.cmd.stdin.flush()
 			self.paused = False
 
-	def playing(self):
-		return self.playing
+	def stop(self):
+		if self.cmd != None:
+			self.cmd.kill()
 
 # def main():
 # 	p = MPlayer()
