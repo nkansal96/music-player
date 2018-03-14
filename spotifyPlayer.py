@@ -50,7 +50,7 @@ class SpotifyPlayer:
 			os.remove(self.currFileName)
 
 
-	def __queue_tracks(self, tracks):
+	def _queue_tracks(self, tracks):
 		numQueued = 0
 		for track in tracks:
 			if track["preview_url"] != None:
@@ -59,7 +59,7 @@ class SpotifyPlayer:
 		return numQueued
 
 
-	def __search_track(self, name="", artist="", inputLimit=1):
+	def _search_track(self, name="", artist="", inputLimit=1):
 		searchQuery = name + " " + artist
 		result = []
 		offset = 0
@@ -85,7 +85,7 @@ class SpotifyPlayer:
 		return result
 
 
-	def __search_playlist(self, name, inputLimit):
+	def _search_playlist(self, name, inputLimit):
 		result = []
 		offset = 0
 
@@ -117,7 +117,7 @@ class SpotifyPlayer:
 		return result
 
 
-	def __download_mp3(self, url):
+	def _download_mp3(self, url):
 		# Make sure existing tempfile removed first
 		if Path(self.currFileName).is_file():
 			os.remove(self.currFileName)
@@ -130,8 +130,8 @@ class SpotifyPlayer:
 	If song not playing, delete its tempfile and move on to next song.
 	If song is not able to be downloaded/played within 10 seconds, move on to next song 
 	"""
-	def __play_mp3(self, url):
-		self.__download_mp3(url)
+	def _play_mp3(self, url):
+		self._download_mp3(url)
 
 		def playMP3():
 			mixer.music.load(self.currFileName)
@@ -157,11 +157,11 @@ class SpotifyPlayer:
 
 
 	def play_song(self, name, artist):
-		track = self.__search_track(name=name, artist=artist)		# [{name,artist,url}]
+		track = self._search_track(name=name, artist=artist)		# [{name,artist,url}]
 		if len(track) == 0:
 			raise NotFound(NotFound.SONG, "{} by {}".format(name, artist))
 		self.queue.clear()
-		self.__queue_tracks(track)
+		self._queue_tracks(track)
 		self.play_next()
 		return track
 
@@ -173,27 +173,27 @@ class SpotifyPlayer:
 		if self.playMP3Thread != None:
 			self.stop()
 			# TODO: kill thread
-		self.__play_mp3(self.queue.pop(0))
+		self._play_mp3(self.queue.pop(0))
 
 
 	# Searches for up to 20 songs by the specified artist
 	def play_artist(self, artist):
-		tracks = self.__search_track(artist=artist, inputLimit=20)
+		tracks = self._search_track(artist=artist, inputLimit=20)
 		if len(tracks) == 0:
 			raise NotFound(NotFound.ARTIST, "{}".format(artist))
 		self.queue.clear()
-		self.__queue_tracks(tracks)
+		self._queue_tracks(tracks)
 		self.play_next()
 		return artist
 
 
 	# Searches for up to 20 songs by the specified artist
 	def play_playlist(self, playlist):
-		tracks = self.__search_playlist(playlist, 20)
+		tracks = self._search_playlist(playlist, 20)
 		if len(tracks) == 0:
 			raise NotFound(NotFound.PLAYLIST, "{}".format(playlist))
 		self.queue.clear()
-		self.__queue_tracks(tracks)
+		self._queue_tracks(tracks)
 		self.play_next()
 		return playlist
 
