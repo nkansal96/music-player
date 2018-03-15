@@ -145,7 +145,7 @@ class SpotifyPlayer:
 		Sets the volume to `value`, which should be between 0 and 100. If any other
 		value is provided, the value is confined to the interval [0, 100].
 		"""
-		vol = max(0, min(100, value)) / 100
+		vol = max(0, min(100, value))
 		self.player.set_volume(vol)
 		return vol
 
