@@ -15,9 +15,9 @@ It uses the [Aurora API](http://auroraapi.com) to understand voice commands and 
 ## Prerequesites
 
 1. Create an account with [Aurora](http://dashboard.auroraapi.com).
-  - Create an application and note down the **Application ID** and the **Application Token**.
+  1. Create an application and note down the **Application ID** and the **Application Token**.
 2. Create a [Spotify Developer Account](https://developer.spotify.com/my-applications/)
-  - Create an application and note its **Spotify client ID** and **Spotify client secret**.
+  1. Create an application and note its **Spotify client ID** and **Spotify client secret**.
 3. Install the Aurora dependencies. Follow the directions under the **Installation** section of the [Aurora Python SDK](https://github.com/auroraapi/aurora-python).
 4. This application was developed with **Python 3.5**, so that is the version of Python we recommend. We also recommend using a virtual environment. Clone the code and run `pip install -r requirements.txt`.
 
