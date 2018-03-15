@@ -17,6 +17,10 @@ def play_artist(player, entities):
 def play_playlist(player, entities):
 	return player.play_playlist(entities["playlist"])
 
+def play_next(player, entities):
+	player.play_next()
+	return True
+
 def pause(player, entities):
 	player.pause()
 	return True
@@ -32,6 +36,7 @@ CMD_MAP = {
 	"play_song":     { "fn": play_song,     "required": ["song"] },
 	"play_artist":   { "fn": play_artist,   "required": ["artist"] },
 	"play_playlist": { "fn": play_playlist, "required": ["playlist"] },
+	"play_next":     { "fn": play_next,     "required": [] },
 	"turn_off":      { "fn": pause,         "required": [] },
 	"pause":         { "fn": pause,         "required": [] },
 	"resume":        { "fn": resume,        "required": [] },
@@ -45,6 +50,8 @@ def process_command(player, command):
 		if not all(x in command.entities for x in cmd["required"]):
 			raise ValueError()
 		return cmd["fn"](player, defaultdict(str, command.entities))
+	except EmptyQueue:
+		pass
 	except NotFound as nf:
 		text = Text("I couldn't find the {} {}".format(nf.type, nf.query))
 		print(text.text)
