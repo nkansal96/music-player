@@ -7,6 +7,7 @@ from auroraapi.speech import *
 
 from spotify_player import SpotifyPlayer
 from exceptions import *
+from utils import *
 
 def play_song(player, entities):
 	return player.play_song(entities["song"], entities["artist"])
@@ -67,13 +68,14 @@ def start_player(opts):
 	print("Ready")
 	for text in continuously_listen_and_transcribe(length=1.5):
 		if opts.trigger_word.lower() in text.text.lower():
-			print("Awaiting command...")
-			s = listen(silence_len=opts.silence_len)
-			s.audio.play()
-			text = s.text()
-			if len(text.text) > 0: 
-				print(text.text)
-				process_command(player, text.interpret())
+			with duck(player, 5):
+				print("Awaiting command...")
+				s = listen(silence_len=opts.silence_len)
+				s.audio.play()
+				text = s.text()
+				if len(text.text) > 0: 
+					print(text.text)
+					process_command(player, text.interpret())
 		print("Ready")
 
 if __name__ == "__main__":
