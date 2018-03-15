@@ -1,33 +1,41 @@
 import pytest
-import time
+import time, os
 import argparse
 import auroraapi as aurora
 from auroraapi.interpret import Interpret
 
 from aurora import *
+from exceptions import *
 
-class CLIOptions():
+class CLIOptions(object):
 	def __init__(self):
-		self.app_id='ceb5d7c34056489150660ec5ebcc1c5f'
-		self.app_token='6NWvZigglXLlmA4aD1k0iJctnNYigyG'
+		self.app_id=''
+		self.app_token=''
 		self.device_id=None
-		self.spotify_client_id='9714ff73fa2f4b0b947ef433da16656c'
-		self.spotify_client_secret='a79a370dff33474c85f0c639e9df9eba'
+		self.spotify_client_id=''
+		self.spotify_client_secret=''
 		self.silence_len=0.3
 		self.trigger_word='box'
 
-	def update_trigger_word(trigger_word):
-		self.trigger_word = trigger_word
-
-class TestStartPlayer(object):
 	def setup(self):
 		self.opts = CLIOptions()
+		self.opts.app_id = os.environ['APP_ID']
+		self.opts.app_token = os.environ['APP_TOKEN']
+		self.opts.spotify_client_id = os.environ['SPOTIFY_CLIENT_ID']
+		self.opts.spotify_client_secret = os.environ['SPOTIFY_CLIENT_SECRET']
 
 		aurora.config.app_id    = self.opts.app_id
 		aurora.config.app_token = self.opts.app_token
 		aurora.config.device_id = self.opts.device_id
 
 		self.player = SpotifyPlayer(self.opts.spotify_client_id, self.opts.spotify_client_secret)
+
+	def update_trigger_word(trigger_word):
+		self.trigger_word = trigger_word
+
+class TestStartPlayer(object):
+	def setup(self):
+		CLIOptions.setup(self);
 
 	def test_process_command(self):
 		i = Interpret({
@@ -49,7 +57,7 @@ class TestStartPlayer(object):
 					"duration": "10 minutes"
 				}
 			})
-		assert not process_command(self.player, i)
+		assert None == process_command(self.player, i)
 
 	def test_process_command_entity_NA(self):
 		i = Interpret({
@@ -57,4 +65,39 @@ class TestStartPlayer(object):
 				"intent": "play_song",
 				"entities": {}
 			})
-		assert not process_command(self.player, i)
+		assert None == process_command(self.player, i)
+
+class TestSpotifyPlayer(object):
+	def setup(self):
+		CLIOptions.setup(self)
+
+	# a valid song and artist query should return without failure
+	def test_play_song(self):
+		assert self.player.play_song('hello', 'adele')
+
+	# a valid song and artist query should return without failure
+	def test_play_song_without_artist(self):
+		assert self.player.play_song('hello')
+
+	# an invalid song query should raise a custom NotFound exception
+	def test_play_song_invalid(self):
+		with pytest.raises(NotFound) as e:
+			self.player.play_song('qwertyasdfgzxcvb', 'asdfghjwertyx')
+
+	# a valid artist query should return without failure
+	def test_play_artist(self):
+		assert self.player.play_artist('bruno mars')
+
+	# an invalid artist query should raise a custom NotFound exception
+	def test_play_artist_invalid(self):
+		with pytest.raises(NotFound) as e:
+			self.player.play_artist('askdjflkajf')
+
+	# self.player.pause should not cause a runtime error
+	def test_pause(self):
+		self.player.pause()
+
+	# self.player.resume should not cause a runtime error
+	def test_resume(self):
+		self.player.resume()
+		

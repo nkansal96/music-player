@@ -14,6 +14,7 @@ class MPlayer(object):
 		url = url.replace("https://", "http://", 1)
 		self.stop()
 		self.volume = 25
+		self.playing = True 
 		self.cmd = subprocess.Popen(["mplayer", "-quiet", url], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		self.cmd.wait()
 		self.playing = False
