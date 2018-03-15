@@ -37,7 +37,7 @@ class SpotifyPlayer:
 		"""
 		Search for a track by name and artist
 		"""
-		searchQuery = "{} + {}".format(name, artist).strip()
+		searchQuery = "{} {}".format(name, artist).strip()
 		result = []
 		offset = 0
 
