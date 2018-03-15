@@ -12,20 +12,20 @@ class SpotifyPlayer:
 		self.player = mplayer.MPlayer()
 		self.play_thread = None
 
-		credentials = oauth2.SpotifyClientCredentials(
-			client_id=spotify_client_id,
-			client_secret=spotify_client_secret,
-		)
-
-		token = credentials.get_access_token()
-		if not token:
-			raise InvalidAuth()
+		try:
+			credentials = oauth2.SpotifyClientCredentials(
+				client_id=spotify_client_id,
+				client_secret=spotify_client_secret)
+			token = credentials.get_access_token()
+		except:
+			raise InvalidAuth("Unable to get Spotify access token")
 
 		self.sp = spotipy.Spotify(auth=token)
 	
 	def __del__(self):
 		self.queue.clear()
 		self.player.stop()
+		self.play_thread.join()
 	
 	def _queue_tracks(self, tracks):
 		"""

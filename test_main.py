@@ -24,6 +24,7 @@ class TestStartPlayer(object):
 		 	})
 		assert process_command(self.player, i)
 		time.sleep(0.1)
+		self.player.player.stop()
 
 	def test_process_command_intent_not_found(self):
 		i = Interpret({

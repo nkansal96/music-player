@@ -42,5 +42,8 @@ def main():
 	p.volume(100)
 	time.sleep(3)
 
+	# stop the player
+	p.player.stop()
+
 if __name__ == "__main__":
 	main()
