@@ -1,16 +1,11 @@
 class InvalidAuth(Exception):
-	pass
+	def __init__(self, message):
+		super().__init__(message)
 
 class EmptyQueue(Exception):
-	pass
+	def __init__(self):
+		super().__init__("You tried to call play on an empty queue")
 
-"""
-raise NotFound(NotFound.SONG, "Hello")
-try:
-	# Do something
-except NotFound as nf:
-	s = "Couldn't find the {} {}".format(nf.type, nf.query)
-"""
 class NotFound(Exception):
 	SONG = "song"
 	ARTIST = "artist"
