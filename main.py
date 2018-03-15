@@ -86,7 +86,7 @@ if __name__ == "__main__":
 	parser.add_argument("--spotify_client_id", action="store", help="The Spotify client ID", type=str, required=True)
 	parser.add_argument("--spotify_client_secret", action="store", help="The Spotify client secret", type=str, required=True)
 	parser.add_argument("--trigger_word", action="store", help="the trigger word for commands", type=str, default="box")
-	parser.add_argument("--silence_len", action="store", help="the amount of silence (seconds)", type=float, default=0.3)
+	parser.add_argument("--silence_len", action="store", help="the amount of silence (seconds)", type=float, default=0.5)
 
 	opts = parser.parse_args()
 

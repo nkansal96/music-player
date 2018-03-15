@@ -1,7 +1,6 @@
-import threading, time, os
-from spotify_player import *
-from test_common import *
+import time
 import utils
+from test_common import CLIOptions
 
 class TestDuck(object):
 	def setup(self):
