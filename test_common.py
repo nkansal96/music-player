@@ -1,4 +1,7 @@
 import time, os
+import auroraapi as aurora
+
+from spotify_player import SpotifyPlayer
 
 class CLIOptions(object):
 	def __init__(self):
@@ -10,8 +13,8 @@ class CLIOptions(object):
 		self.silence_len=0.3
 		self.trigger_word='box'
 
-		aurora.config.app_id    = self.opts.app_id
-		aurora.config.app_token = self.opts.app_token
-		aurora.config.device_id = self.opts.device_id
+		aurora.config.app_id    = self.app_id
+		aurora.config.app_token = self.app_token
+		aurora.config.device_id = self.device_id
 
-		self.player = SpotifyPlayer(self.opts.spotify_client_id, self.opts.spotify_client_secret)
+		self.player = SpotifyPlayer(self.spotify_client_id, self.spotify_client_secret)

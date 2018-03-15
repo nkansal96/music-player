@@ -1,4 +1,4 @@
-import subprocess, asyncio, time, select, threading
+import subprocess
 
 class MPlayer(object):
 	def __init__(self):
@@ -20,6 +20,8 @@ class MPlayer(object):
 		self.playing = False
 	
 	def set_volume(self, vol):
+		if self.cmd == None:
+			return
 		key = b"9" if vol < self.volume else b"0"
 		while abs(self.volume - vol) > 3:
 			self.cmd.stdin.write(key)
@@ -27,12 +29,16 @@ class MPlayer(object):
 			self.volume += -3 if key == b"9" else 3
 
 	def pause(self):
+		if self.cmd == None:
+			return
 		if not self.paused:
 			self.cmd.stdin.write(b"p")
 			self.cmd.stdin.flush()
 			self.paused = True
 	
 	def resume(self):
+		if self.cmd == None:
+			return
 		if self.paused:
 			self.cmd.stdin.write(b"p")
 			self.cmd.stdin.flush()

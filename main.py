@@ -5,7 +5,7 @@ import auroraapi as aurora
 from auroraapi.text import *
 from auroraapi.speech import *
 
-from spotifyPlayer import SpotifyPlayer
+from spotify_player import SpotifyPlayer
 from exceptions import *
 
 def play_song(player, entities):

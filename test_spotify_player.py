@@ -4,9 +4,9 @@ import argparse
 import auroraapi as aurora
 from auroraapi.interpret import Interpret
 
-from aurora import *
+from main import *
 from exceptions import *
-from common import CLIOptions
+from test_common import CLIOptions
 
 class TestSpotifyPlayer(object):
 	def setup(self):
@@ -19,7 +19,7 @@ class TestSpotifyPlayer(object):
 
 	# a valid song and artist query should return without failure
 	def test_play_song_without_artist(self):
-		assert self.player.play_song('hello')
+		assert self.player.play_song('hello', '')
 
 	# an invalid song query should raise a custom NotFound exception
 	def test_play_song_invalid(self):

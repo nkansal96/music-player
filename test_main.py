@@ -4,9 +4,9 @@ import argparse
 import auroraapi as aurora
 from auroraapi.interpret import Interpret
 
-from aurora import *
+from main import *
 from exceptions import *
-from common import CLIOptions
+from test_common import CLIOptions
 
 class TestStartPlayer(object):
 	def setup(self):
