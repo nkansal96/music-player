@@ -17,6 +17,6 @@ class NotFound(Exception):
 	PLAYLIST = "playlist"
 
 	def __init__(self, type, query):
-		super().__init__()
+		super().__init__("Could not find {} {}".format(type, query))
 		self.type = type
 		self.query = query

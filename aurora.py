@@ -2,20 +2,20 @@ import argparse
 from collections import defaultdict
 
 import auroraapi as aurora
-from auroraapi.audio import AudioFile
+from auroraapi.text import *
 from auroraapi.speech import *
-from auroraapi.interpret import Interpret
+
 from spotifyPlayer import SpotifyPlayer
+from exceptions import *
 
 def play_song(player, entities):
 	return player.play_song(entities["song"], entities["artist"])
 
 def play_artist(player, entities):
-	return player.play_song("", entities["artist"])
+	return player.play_artist(entities["artist"])
 
 def play_playlist(player, entities):
-	# TODO: implement this
-	raise NotImplemented("play_playlist not implemented")
+	return player.play_playlist(entities["playlist"])
 
 def pause(player, entities):
 	player.pause()
@@ -45,12 +45,15 @@ def process_command(player, command):
 		if not all(x in command.entities for x in cmd["required"]):
 			raise ValueError()
 		return cmd["fn"](player, defaultdict(str, command.entities))
+	except NotFound as nf:
+		text = Text("I couldn't find the {} {}".format(nf.type, nf.query))
+		print(text.text)
+		t.speech().audio.play()
 	except ValueError:
 		print("Required entities not provided: {{ intent: {}, entities: {} }}".format(command.intent, command.entities))
-		return None
 	except:
 		print("Could not parse: {{ intent: {}, entities: {} }}".format(command.intent, command.entities))
-		return None
+	return None
 
 def start_player(opts):
 	player = SpotifyPlayer(opts.spotify_client_id, opts.spotify_client_secret)
