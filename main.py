@@ -85,8 +85,8 @@ if __name__ == "__main__":
 	parser.add_argument("--device_id", action="store", help="the unique ID for this device", type=str, default=None)
 	parser.add_argument("--spotify_client_id", action="store", help="The Spotify client ID", type=str, required=True)
 	parser.add_argument("--spotify_client_secret", action="store", help="The Spotify client secret", type=str, required=True)
-	parser.add_argument("--trigger_word", action="store", help="the trigger word for commands", type=str, default="box")
-	parser.add_argument("--silence_len", action="store", help="the amount of silence (seconds)", type=float, default=0.5)
+	parser.add_argument("--trigger_word", action="store", help="the trigger word for listen for before detecting commands", type=str, default="box")
+	parser.add_argument("--silence_len", action="store", help="the amount of silence (seconds) to tolerate before querying the Aurora API service", type=float, default=0.5)
 
 	opts = parser.parse_args()
 
