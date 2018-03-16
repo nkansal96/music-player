@@ -67,8 +67,9 @@ def process_command(player, command):
 		print("Could not parse: {{ intent: {}, entities: {} }}".format(command.intent, command.entities))
 	return None
 
-def start_player(opts):
-	player = SpotifyPlayer(opts.spotify_client_id, opts.spotify_client_secret)
+def start_player(opts, player=None):
+	if player == None:
+		player = SpotifyPlayer(opts.spotify_client_id, opts.spotify_client_secret)
 	print("Ready")
 	try: 
 		for text in continuously_listen_and_transcribe(length=0.8):
@@ -84,7 +85,7 @@ def start_player(opts):
 	except KeyboardInterrupt:
 		pass
 	except:
-		start_player(opts)
+		start_player(opts, player=player)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
