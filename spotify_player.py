@@ -141,6 +141,8 @@ class SpotifyPlayer:
 		self.player.resume()
 
 	def stop(self):
+		""" Stop playback entirely """
+		self.queue.clear()
 		self.player.stop()
 
 	def volume(self, value):

@@ -10,6 +10,8 @@ class duck(object):
 		self.original_vol = player.player.volume
 	
 	def __enter__(self):
+		if not self.player.player.playing or self.player.player.paused:
+			return self
 		if self.target >= self.player.player.volume:
 			return self
 		for i in range(self.original_vol, self.target-1, -self.step_size):

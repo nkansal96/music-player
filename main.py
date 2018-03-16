@@ -72,15 +72,16 @@ def start_player(opts, player=None):
 		player = SpotifyPlayer(opts.spotify_client_id, opts.spotify_client_secret)
 	print("Ready")
 	try: 
-		for text in continuously_listen_and_transcribe(length=0.8):
+		for text in continuously_listen_and_transcribe(length=0.5):
 			if opts.trigger_word.lower() in text.text.lower():
+				cmdText = None
 				with duck(player, 1):
 					print("Awaiting command...")
 					s = listen(silence_len=opts.silence_len)
-					text = s.text()
-					if len(text.text) > 0: 
-						print(text.text)
-						process_command(player, text.interpret())
+					cmdText = s.text()
+				if len(cmdText.text) > 0: 
+					print(cmdText.text)
+					process_command(player, cmdText.interpret())
 			print("Ready")
 	except KeyboardInterrupt:
 		pass
