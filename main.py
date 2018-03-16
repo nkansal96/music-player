@@ -22,6 +22,10 @@ def play_next(player, entities):
 	player.play_next()
 	return True
 
+def stop(player, entities):
+	player.stop()
+	return True
+
 def pause(player, entities):
 	player.pause()
 	return True
@@ -38,7 +42,7 @@ CMD_MAP = {
 	"play_artist":   { "fn": play_artist,   "required": ["artist"] },
 	"play_playlist": { "fn": play_playlist, "required": ["playlist"] },
 	"play_next":     { "fn": play_next,     "required": [] },
-	"turn_off":      { "fn": pause,         "required": [] },
+	"turn_off":      { "fn": stop,          "required": [] },
 	"pause":         { "fn": pause,         "required": [] },
 	"resume":        { "fn": resume,        "required": [] },
 	"volume":        { "fn": set_volume,    "required": ["volume"] },	
@@ -56,7 +60,7 @@ def process_command(player, command):
 	except NotFound as nf:
 		text = Text("I couldn't find the {} {}".format(nf.type, nf.query))
 		print(text.text)
-		t.speech().audio.play()
+		text.speech().audio.play()
 	except ValueError:
 		print("Required entities not provided: {{ intent: {}, entities: {} }}".format(command.intent, command.entities))
 	except:
@@ -66,17 +70,21 @@ def process_command(player, command):
 def start_player(opts):
 	player = SpotifyPlayer(opts.spotify_client_id, opts.spotify_client_secret)
 	print("Ready")
-	for text in continuously_listen_and_transcribe(length=1.5):
-		if opts.trigger_word.lower() in text.text.lower():
-			with duck(player, 5):
-				print("Awaiting command...")
-				s = listen(silence_len=opts.silence_len)
-				s.audio.play()
-				text = s.text()
-				if len(text.text) > 0: 
-					print(text.text)
-					process_command(player, text.interpret())
-		print("Ready")
+	try: 
+		for text in continuously_listen_and_transcribe(length=0.8):
+			if opts.trigger_word.lower() in text.text.lower():
+				with duck(player, 1):
+					print("Awaiting command...")
+					s = listen(silence_len=opts.silence_len)
+					text = s.text()
+					if len(text.text) > 0: 
+						print(text.text)
+						process_command(player, text.interpret())
+			print("Ready")
+	except KeyboardInterrupt:
+		pass
+	except:
+		start_player(opts)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()

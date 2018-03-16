@@ -140,6 +140,9 @@ class SpotifyPlayer:
 		""" Resume playback """
 		self.player.resume()
 
+	def stop(self):
+		self.player.stop()
+
 	def volume(self, value):
 		"""
 		Sets the volume to `value`, which should be between 0 and 100. If any other

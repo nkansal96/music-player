@@ -19,6 +19,7 @@ class MPlayer(object):
 		self.cmd = subprocess.Popen(["mplayer", "-quiet", "-volume", "50", url], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		self.cmd.wait()
 		self.playing = False
+		self.cmd = None
 	
 	def set_volume(self, vol):
 		if self.cmd == None:
