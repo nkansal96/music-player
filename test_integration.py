@@ -1,10 +1,8 @@
-import time
-import settings
-
+import time, os
 from spotify_player import SpotifyPlayer
 
 def main():
-	p = SpotifyPlayer(settings.SPOTIFY_CLIENT_ID, settings.SPOTIFY_CLIENT_SECRET)
+	p = SpotifyPlayer(os.environ["SPOTIFY_CLIENT_ID"], os.environ["SPOTIFY_CLIENT_SECRET"])
 
 	# play three songs from a playlist
 	p.play_playlist("USA Top 50")
@@ -41,6 +39,9 @@ def main():
 	# make it loud
 	p.volume(100)
 	time.sleep(3)
+
+	# stop the player
+	p.player.stop()
 
 if __name__ == "__main__":
 	main()
